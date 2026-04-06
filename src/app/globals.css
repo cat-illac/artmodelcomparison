@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* ── AvakinAI Design Tokens (from Figma Make design system) ── */
+:root {
+  /* Brand palette */
+  --purple:       #7B52AB;
+  --purple2:      #9B72CB;
+  --purple-pale:  #EDE0FF;
+  --pink:         #F9C8E2;
+  --bg:           #FBF0F6;
+  --card:         #ffffff;
+  --text:         #2D1B4E;
+  --muted:        #8B7A9E;
+  --border:       #E8D8F0;
+
+  /* shadcn/ui semantic tokens — mapped to brand palette */
+  --background:         255 255 255;
+  --foreground:         45 27 78;
+  --card:               255 255 255;
+  --card-foreground:    45 27 78;
+  --popover:            255 255 255;
+  --popover-foreground: 45 27 78;
+  --primary:            123 82 171;
+  --primary-foreground: 255 255 255;
+  --secondary:          237 224 255;
+  --secondary-foreground: 45 27 78;
+  --muted:              251 240 246;
+  --muted-foreground:   139 122 158;
+  --accent:             249 200 226;
+  --accent-foreground:  45 27 78;
+  --destructive:        239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border:             232 216 240;
+  --input:              232 216 240;
+  --ring:               123 82 171;
+  --radius:             1rem;
+}
+
+/* ── Base ── */
+body {
+  background-color: #FBF0F6;
+  color: #2D1B4E;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Bubble float animation ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes floatAlt {
+  0%, 100% { transform: translateY(-5px); }
+  50%       { transform: translateY(5px); }
+}
+
+/* ── Screen slide transitions ── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-40px); }
+}
+
+/* ── Suggestion fade ── */
+@keyframes suggestionFade {
+  0%   { opacity: 0; transform: translateY(4px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  85%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* ── Glow pulse for buddy ── */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.08); }
+}
+
+/* ── Pulsing orb for generation screen ── */
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.8; }
+  50%       { transform: scale(1.15); opacity: 1; }
+}
+
+/* ── Shimmer for loading states ── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Color morph ── */
+@keyframes colorMorph {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.animate-float      { animation: float    3s ease-in-out infinite; }
+.animate-float-alt  { animation: floatAlt 4s ease-in-out infinite; }
+.animate-glow-pulse { animation: glowPulse 2.5s ease-in-out infinite; }
+.animate-orb-pulse  { animation: orbPulse  2s ease-in-out infinite; }
+.animate-shimmer    { animation: shimmer   2s linear infinite; }
+.animate-color-morph { animation: colorMorph 6s ease infinite; background-size: 200% 200%; }

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AvakinAI — Create Your Avatar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FBF0F6;
+  --card: #fff;
+  --purple: #7B52AB;
+  --purple2: #9B72CB;
+  --purple-pale: #EDE0FF;
+  --pink: #F9C8E2;
+  --text: #2D1B4E;
+  --muted: #8B7A9E;
+  --border: #E8D8F0;
+  --shadow: 0 4px 20px rgba(123,82,171,0.12);
+  --r: 20px;
+  --r-sm: 12px;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== SCREEN SYSTEM ========== */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 110px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(50px);
+  transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .4s cubic-bezier(.4,0,.2,1);
+  z-index: 1;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(0);
+}
+.screen.exit {
+  opacity: 0;
+  transform: translateX(-50px);
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+/* ========== WELCOME ========== */
+#s0 {
+  background: linear-gradient(150deg, #FBF0F6 0%, #EDE0FF 55%, #FBF0F6 100%);
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 0;
+  text-align: center;
+}
+
+.ava-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 32px;
+}
+.ava-glow {
+  position: absolute;
+  inset: -28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(155,114,203,.35) 0%, transparent 70%);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+.ava-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C084FC, #818CF8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+  box-shadow: 0 8px 32px rgba(192,132,252,.45);
+  animation: floatBob 3s ease-in-out infinite;
+}
+.ava-spark { position: absolute; font-size: 18px; animation: sparkAnim 2s ease-in-out infinite; }
+.ava-spark:nth-child(3) { top: -6px; right: 2px; animation-delay: 0s; }
+.ava-spark:nth-child(4) { bottom: 6px; left: -6px; animation-delay: .8s; }
+.ava-spark:nth-child(5) { top: 28px; left: -12px; animation-delay: 1.5s; }
+
+@keyframes glowPulse { 0%,100%{opacity:.55;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+@keyframes floatBob  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-11px)} }
+@keyframes sparkAnim { 0%,100%{opacity:0;transform:scale(.4) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
+
+.logo-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 14px;
+}
+.welcome-title {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, var(--text) 20%, var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.welcome-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 290px;
+  line-height: 1.55;
+  margin: 0 auto 48px;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 100px;
+  transition: all .2s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple), var(--purple2));
+  color: #fff;
+  padding: 16px 52px;
+  box-shadow: 0 8px 24px rgba(123,82,171,.4);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(123,82,171,.5); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.btn-outline {
+  background: #fff;
+  color: var(--purple);
+  border: 2px solid var(--purple);
+  padding: 14px 40px;
+}
+.btn-outline:hover { background: var(--purple); color: #fff; }
+.btn-sm { padding: 10px 24px; font-size: 14px; }
+
+/* ========== LAYOUT ========== */
+.inner { width: 100%; max-width: 480px; }
+
+.progress-bar { display: flex; gap: 6px; margin-bottom: 20px; }
+.pdot { height: 6px; width: 6px; border-radius: 3px; background: var(--border); transition: all .35s ease; }
+.pdot.active { background: var(--purple); width: 22px; }
+.pdot.done { background: var(--purple2); }
+
+.back-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none;
+  color: var(--muted); font-size: 14px; font-family: inherit;
+  cursor: pointer; padding: 8px 0; margin-bottom: 4px;
+  transition: color .2s; align-self: flex-start;
+}
+.back-btn:hover { color: var(--purple); }
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px 20px 30px;
+  background: linear-gradient(transparent, var(--bg) 35%);
+  display: flex; justify-content: center;
+  z-index: 50; pointer-events: none;
+}
+.bottom-bar > * { pointer-events: all; }
+
+/* ========== SCREEN 1 ========== */
+#s1 { justify-content: flex-start; padding-top: 36px; }
+
+.mini-buddy {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border-radius: var(--r-sm);
+  padding: 12px 16px; margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.mini-buddy-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #C084FC, #818CF8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.mini-buddy-msg { font-size: 14px; line-height: 1.45; }
+.mini-buddy-msg strong { color: var(--purple); }
+
+.hero-q-label {
+  font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: 16px;
+}
+.hero-q-label span { color: var(--purple); }
+
+.input-field {
+  width: 100%; padding: 13px 16px;
+  border: 2px solid var(--border); border-radius: var(--r-sm);
+  font-family: inherit; font-size: 15px; color: var(--text);
+  background: #fff; outline: none; transition: border-color .2s;
+}
+.input-field:focus { border-color: var(--purple); }
+.input-field::placeholder { color: var(--muted); }
+
+select.input-field {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B7A9E' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 36px; cursor: pointer;
+}
+
+.q-group {
+  margin-bottom: 22px;
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.q-group.show { opacity: 1; transform: translateY(0); }
+
+.q-label { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 7px; }
+.q-label em { font-style: normal; color: var(--purple); font-weight: 700; }
+
+.chips-row { display: flex; gap: 7px; margin-top: 9px; flex-wrap: wrap; min-height: 30px; }
+.chip {
+  padding: 5px 14px; border-radius: 100px;
+  background: var(--purple-pale); color: var(--purple);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all .18s; font-family: inherit;
+  white-space: nowrap;
+  animation: chipIn .3s ease;
+}
+@keyframes chipIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.chip:hover { background: var(--purple); color: #fff; }
+
+/* ========== SCREEN 2 ========== */
+#s2 { justify-content: flex-start; padding-top: 36px; }
+
+.s2-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+.s2-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+.bubbles-wrap {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; max-width: 480px;
+}
+.bubble {
+  padding: 11px 22px; border-radius: 100px;
+  background: #fff; border: 2px solid var(--border);
+  font-size: 15px; font-weight: 500;
+  cursor: pointer; font-family: inherit; color: var(--text);
+  transition: border-color .2s, background .2s, color .2s, transform .2s, box-shadow .2s;
+}
+.bubble:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-3px); }
+.bubble.sel {
+  background: var(--purple); border-color: var(--purple); color: #fff;
+  box-shadow: 0 4px 14px rgba(123,82,171,.4); transform: translateY(-3px);
+}
+
+/* ========== SCREEN 3 ========== */
+#s3 { justify-content: flex-start; padding-top: 36px; }
+
+.form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.form-col { flex: 1; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
+
+.color-card {
+  background: #fff; border-radius: var(--r);
+  padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px;
+}
+.color-card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.color-card-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.palette-icon { font-size: 18px; opacity: .4; }
+
+.circles { display: flex; gap: 8px; flex-wrap: wrap; }
+.cc {
+  width: 42px; height: 42px; border-radius: 50%;
+  cursor: pointer; border: 3px solid transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  transition: transform .2s, box-shadow .2s; flex-shrink: 0;
+}
+.cc:hover { transform: scale(1.12); }
+.cc.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--purple), 0 2px 8px rgba(0,0,0,.2); }
+
+.two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.two-up .color-card { margin-bottom: 0; }
+.two-up .circles { gap: 6px; }
+.two-up .cc { width: 34px; height: 34px; }
+
+/* ========== SCREEN 4 ========== */
+#s4 { justify-content: flex-start; padding-top: 36px; }
+
+.gen-loading-block {
+  text-align: center; padding: 40px 0 30px; width: 100%; max-width: 480px;
+}
+.gen-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.gen-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--purple);
+  animation: genPop 1.2s ease-in-out infinite;
+}
+.gen-dot:nth-child(2){animation-delay:.2s}
+.gen-dot:nth-child(3){animation-delay:.4s}
+@keyframes genPop { 0%,100%{opacity:.3;transform:scale(.7)} 50%{opacity:1;transform:scale(1.3)} }
+
+.s4-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; max-width: 480px; width: 100%; }
+.s4-title span { color: var(--purple); }
+
+.prompt-card {
+  background: #fff; border-radius: var(--r);
+  padding: 18px; box-shadow: var(--shadow);
+  max-width: 480px; width: 100%; margin-bottom: 20px;
+}
+.prompt-card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.prompt-card-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.copy-btn {
+  background: var(--purple-pale); color: var(--purple);
+  border: none; padding: 4px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: all .2s;
+}
+.copy-btn:hover { background: var(--purple); color: #fff; }
+.prompt-text {
+  font-size: 12.5px; line-height: 1.65; color: var(--text);
+  background: var(--bg); border-radius: 8px; padding: 12px;
+  max-height: 110px; overflow-y: auto;
+}
+
+.avatars-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; max-width: 480px; width: 100%; margin-bottom: 24px;
+}
+.avatar-card {
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: var(--shadow); background: var(--purple-pale);
+  aspect-ratio: 2/3; position: relative;
+}
+.avatar-card img {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block; opacity: 0;
+  transition: opacity .6s ease;
+}
+.avatar-card img.loaded { opacity: 1; }
+.avatar-loader {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  transition: opacity .4s ease;
+}
+.avatar-loader.done { opacity: 0; pointer-events: none; }
+.loader-ring {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin .85s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-txt { font-size: 11px; color: var(--muted); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ========== SCREEN 0: WELCOME ========== -->
+<div id="s0" class="screen active">
+  <div class="ava-wrap">
+    <div class="ava-glow"></div>
+    <div class="ava-face">✨</div>
+    <div class="ava-spark">⭐</div>
+    <div class="ava-spark">✦</div>
+    <div class="ava-spark">✦</div>
+  </div>
+  <div class="logo-tag">AvakinAI</div>
+  <h1 class="welcome-title">Create your<br>perfect avatar</h1>
+  <p class="welcome-sub">Answer a few questions and your AI avatar will come to life</p>
+  <button class="btn btn-primary" onclick="goTo('s1')">Let's start ✨</button>
+</div>
+
+<!-- ========== SCREEN 1: IDENTITY ========== -->
+<div id="s1" class="screen">
+  <div class="inner">
+    <button class="back-btn" onclick="goTo('s0')">← Back</button>
+    <div class="progress-bar">
+      <div class="pdot active"></div>
+      <div class="pdot"></div>
+      <div class="pdot"></div>
+    </div>
+
+    <div class="mini-buddy">
+      <div class="mini-buddy-icon">✨</div>
+      <div class="mini-buddy-msg">Hi! I'm <strong>Ava.</strong> Let's figure out who you want to be today.</div>
+    </div>
+
+    <!-- Phase 1: Hero question -->
+    <div id="s1-p1">
+      <div class="hero-q-label">Who do you <span>want to be?</span></div>
+      <input class="input-field" id="q-who" type="text"
+        placeholder="e.g. The most iconic version of myself…"
+        oninput="checkP1()" onkeydown="if(event.key==='Enter' && !document.getElementById('p1-next').disabled) revealP2()">
+      <div style="margin-top:16px">
+        <button class="btn btn-primary btn-sm" id="p1-next" disabled onclick="revealP2()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Phase 2: Follow-up questions (hidden initially) -->
+    <div id="s1-p2" style="display:none; margin-top:28px">
+
+      <div class="q-group" id="qg0">
+        <div class="q-label">I am the kind of person that lives in <em>…</em></div>
+        <input class="input-field" id="q-world" type="text" placeholder="Type or pick a suggestion…">
+        <div class="chips-row" id="chips-world"></div>
+      </div>
+
+      <div class="q-group" id="qg1">
+        <div class="q-label">My vibe is <em>…</em></div>
+        <input class="input-field" id="q-vibe" type="text" placeholder="Type or pick a suggestion…">
+        <div class="chips-row" id="chips-vibe"></div>
+      </div>
+
+      <div class="q-group" id="qg2">
+        <div class="q-label">I want people to see me as <em>…</em></div>
+        <input class="input-field" id="q-seen" type="text" placeholder="Type or pick a suggestion…">
+        <div class="chips-row" id="chips-seen"></div>
+      </div>
+
+      <div class="q-group" id="qg3">
+        <div class="q-label">My perfect night out is <em>…</em></div>
+        <input class="input-field" id="q-night" type="text" placeholder="Type or pick a suggestion…">
+        <div class="chips-row" id="chips-night"></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn btn-primary" id="s1-next" onclick="goTo('s2')" style="display:none">Next →</button>
+  </div>
+</div>
+
+<!-- ========== SCREEN 2: STYLE ========== -->
+<div id="s2" class="screen">
+  <div class="inner">
+    <button class="back-btn" onclick="goTo('s1')">← Back</button>
+    <div class="progress-bar">
+      <div class="pdot done"></div>
+      <div class="pdot active"></div>
+      <div class="pdot"></div>
+    </div>
+    <h2 class="s2-title">What is your <span style="color:var(--purple)">style?</span></h2>
+    <p class="s2-sub">Select all that feel like you</p>
+  </div>
+  <div class="bubbles-wrap" id="bubbles-wrap"></div>
+  <div class="bottom-bar">
+    <button class="btn btn-primary" id="s2-next" onclick="goTo('s3')" disabled>Next →</button>
+  </div>
+</div>
+
+<!-- ========== SCREEN 3: APPEARANCE ========== -->
+<div id="s3" class="screen">
+  <div class="inner">
+    <button class="back-btn" onclick="goTo('s2')">← Back</button>
+    <div class="progress-bar">
+      <div class="pdot done"></div>
+      <div class="pdot done"></div>
+      <div class="pdot active"></div>
+    </div>
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:20px">Almost there — <span style="color:var(--purple)">your look</span></h2>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label">Name</label>
+        <input class="input-field" id="q-name" type="text" placeholder="Enter avatar name">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-col">
+        <label class="form-label">Age</label>
+        <select class="input-field" id="q-age">
+          <option value="">Select age range</option>
+          <option>18–24</option><option>25–30</option><option>31–35</option><option>36–40</option><option>40+</option>
+        </select>
+      </div>
+      <div class="form-col">
+        <label class="form-label">Gender</label>
+        <select class="input-field" id="q-gender">
+          <option value="">Select gender</option>
+          <option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-card-header">
+        <div class="color-card-title"><span>🎨</span> Skin Color</div>
+        <span class="palette-icon">🎨</span>
+      </div>
+      <div class="circles" id="skin-circles"></div>
+    </div>
+
+    <div class="two-up">
+      <div class="color-card">
+        <div class="color-card-header" style="margin-bottom:12px">
+          <div class="color-card-title" style="font-size:13px">Hair Color</div>
+          <span class="palette-icon" style="font-size:15px">🎨</span>
+        </div>
+        <div class="circles" id="hair-circles"></div>
+      </div>
+      <div class="color-card">
+        <div class="color-card-header" style="margin-bottom:12px">
+          <div class="color-card-title" style="font-size:13px">Eye Color</div>
+          <span class="palette-icon" style="font-size:15px">🎨</span>
+        </div>
+        <div class="circles" id="eye-circles"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn btn-primary" onclick="generateAvatars()">Generate My Avatar ✨</button>
+  </div>
+</div>
+
+<!-- ========== SCREEN 4: RESULTS ========== -->
+<div id="s4" class="screen">
+  <div class="inner" style="display:flex;flex-direction:column;align-items:center">
+
+    <div id="gen-loading" class="gen-loading-block">
+      <div class="gen-dots">
+        <div class="gen-dot"></div>
+        <div class="gen-dot"></div>
+        <div class="gen-dot"></div>
+      </div>
+      <div style="font-weight:700;font-size:20px;margin-bottom:8px">Creating your avatar…</div>
+      <div style="font-size:14px;color:var(--muted)">Ava is bringing your vision to life ✨</div>
+    </div>
+
+    <div id="s4-results" style="display:none;width:100%">
+      <h2 class="s4-title">Your <span>4 avatars</span> are ready</h2>
+
+      <div class="prompt-card">
+        <div class="prompt-card-header">
+          <span class="prompt-card-label">AI Prompt</span>
+          <button class="copy-btn" onclick="copyPrompt()">Copy</button>
+        </div>
+        <div class="prompt-text" id="prompt-display"></div>
+      </div>
+
+      <div class="avatars-grid" id="avatars-grid">
+        <div class="avatar-card">
+          <img id="img0" alt="Avatar 1">
+          <div class="avatar-loader" id="ldr0"><div class="loader-ring"></div><div class="loader-txt">Generating…</div></div>
+        </div>
+        <div class="avatar-card">
+          <img id="img1" alt="Avatar 2">
+          <div class="avatar-loader" id="ldr1"><div class="loader-ring"></div><div class="loader-txt">Generating…</div></div>
+        </div>
+        <div class="avatar-card">
+          <img id="img2" alt="Avatar 3">
+          <div class="avatar-loader" id="ldr2"><div class="loader-ring"></div><div class="loader-txt">Generating…</div></div>
+        </div>
+        <div class="avatar-card">
+          <img id="img3" alt="Avatar 4">
+          <div class="avatar-loader" id="ldr3"><div class="loader-ring"></div><div class="loader-txt">Generating…</div></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-bottom:40px">
+        <button class="btn btn-outline" onclick="window.location.reload()">Create Another ✨</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// STATE
+// ==============================
+const S = {
+  who: '', world: '', vibe: '', seen: '', night: '',
+  styles: new Set(),
+  skin: '#FFF8ED', hair: '#1C1C1C', eye: '#7B52AB',
+  name: '', age: '', gender: ''
+};
+
+// ==============================
+// NAVIGATION
+// ==============================
+let currentScreen = 's0';
+function goTo(id) {
+  if (currentScreen === id) return;
+  const cur = document.getElementById(currentScreen);
+  const next = document.getElementById(id);
+  cur.classList.add('exit');
+  cur.classList.remove('active');
+  setTimeout(() => cur.classList.remove('exit'), 350);
+  next.classList.add('active');
+  currentScreen = id;
+  if (id === 's2') initBubbles();
+}
+
+// ==============================
+// SCREEN 1: IDENTITY
+// ==============================
+const SUGGESTIONS = {
+  world: ['Old Hollywood', 'London Punk Scene', 'Bridgerton', 'Tokyo Harajuku', 'Paris Fashion Week', 'Miami Beach', 'NYC Loft', 'Ibiza Summer'],
+  vibe:  ['Girl next door', 'Life of the party', 'Iconic', 'Dark horse', 'The muse', 'Boss energy', 'Soft girl', 'Femme fatale'],
+  seen:  ['Trendsetter', 'Cool girl', 'Sporty', 'Mysterious', 'Artistic', 'Power player', 'Dream girl', 'The IT girl'],
+  night: ['Rooftop luxury', 'VIP nightlife', 'Romantic dinner', 'Beach day', 'Gallery opening', 'Fashion flex', 'Cocktail hour', 'Secret garden']
+};
+const chipIdx = { world: 0, vibe: 0, seen: 0, night: 0 };
+const chipTimers = {};
+
+function renderChips(key) {
+  const pool = SUGGESTIONS[key];
+  const i = chipIdx[key];
+  const shown = [pool[i % pool.length], pool[(i+1) % pool.length], pool[(i+2) % pool.length]];
+  const el = document.getElementById(`chips-${key}`);
+  el.innerHTML = shown.map(s =>
+    `<button class="chip" onclick="pickSuggestion('${key}','${s.replace(/'/g,"\\'")}')">${s}</button>`
+  ).join('');
+}
+
+function pickSuggestion(key, val) {
+  const inputIds = { world:'q-world', vibe:'q-vibe', seen:'q-seen', night:'q-night' };
+  document.getElementById(inputIds[key]).value = val;
+  S[key] = val;
+  checkP2();
+}
+
+function startChips() {
+  Object.keys(SUGGESTIONS).forEach(key => {
+    renderChips(key);
+    chipTimers[key] = setInterval(() => {
+      chipIdx[key]++;
+      renderChips(key);
+    }, 2600 + Math.random() * 600);
+  });
+}
+
+function checkP1() {
+  const val = document.getElementById('q-who').value.trim();
+  document.getElementById('p1-next').disabled = val.length < 2;
+}
+
+function revealP2() {
+  const val = document.getElementById('q-who').value.trim();
+  if (val.length < 2) return;
+  S.who = val;
+
+  const p1 = document.getElementById('s1-p1');
+  p1.style.transition = 'all .4s ease';
+  p1.style.opacity = '0';
+  p1.style.transform = 'translateY(-18px)';
+
+  setTimeout(() => {
+    p1.style.display = 'none';
+    const p2 = document.getElementById('s1-p2');
+    p2.style.display = 'block';
+    // Stagger question groups in
+    document.querySelectorAll('#s1-p2 .q-group').forEach((g, i) => {
+      setTimeout(() => g.classList.add('show'), i * 160);
+    });
+    startChips();
+    setTimeout(() => {
+      const nextBtn = document.getElementById('s1-next');
+      nextBtn.style.display = 'block';
+    }, 800);
+  }, 400);
+}
+
+function checkP2() {
+  const filled = ['world','vibe','seen','night'].filter(k => (S[k] || '').trim()).length;
+  document.getElementById('s1-next').disabled = filled < 1;
+}
+
+// Bind phase 2 inputs to state
+['world','vibe','seen','night'].forEach(key => {
+  const ids = { world:'q-world', vibe:'q-vibe', seen:'q-seen', night:'q-night' };
+  document.getElementById(ids[key]).addEventListener('input', function() {
+    S[key] = this.value;
+    checkP2();
+  });
+});
+
+// ==============================
+// SCREEN 2: STYLE BUBBLES
+// ==============================
+const STYLE_WORDS = [
+  'Understated','Expressive','Statement','Icon',
+  'Sleek','Playful','Edgy','Glamorous',
+  'Sporty','Romantic','Boho','Coquette','Street'
+];
+const FLOAT_DURATIONS = [3.2,3.8,4.1,3.5,4.4,3.1,3.9,4.2,3.3,4.6,3.7,4.0,3.4];
+
+// Inject bubble float keyframe once
+const ks = document.createElement('style');
+ks.textContent = `@keyframes bFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}`;
+document.head.appendChild(ks);
+
+function initBubbles() {
+  const wrap = document.getElementById('bubbles-wrap');
+  if (wrap.childElementCount > 0) return;
+  STYLE_WORDS.forEach((w, i) => {
+    const b = document.createElement('button');
+    b.className = 'bubble' + (S.styles.has(w) ? ' sel' : '');
+    b.textContent = w;
+    b.style.animation = `bFloat ${FLOAT_DURATIONS[i]}s ease-in-out ${(i * 0.18).toFixed(2)}s infinite`;
+    b.onclick = () => {
+      S.styles.has(w) ? S.styles.delete(w) : S.styles.add(w);
+      b.classList.toggle('sel');
+      document.getElementById('s2-next').disabled = S.styles.size === 0;
+    };
+    wrap.appendChild(b);
+  });
+}
+
+// ==============================
+// SCREEN 3: COLOR PICKERS
+// ==============================
+const SKIN_COLORS = ['#FFF8ED','#F5DEB3','#DEB887','#C8956C','#A0724A','#7D4E2D','#5C3317','#3B1F0A'];
+const HAIR_COLORS = ['#1C1C1C','#4A3728','#C8A96E','#E8D5A3','#F0F0F0','#8B4040','#5B5BD6','#FF69B4'];
+const EYE_COLORS  = ['#4A3728','#7B52AB','#2E8B8B','#2D6A2D','#6BB5E8','#8B52AB','#E87A35','#4DDDD4'];
+
+function buildCircles(containerId, colors, stateKey, defaultVal) {
+  const wrap = document.getElementById(containerId);
+  colors.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'cc' + (c === defaultVal ? ' sel' : '');
+    div.style.background = c;
+    div.onclick = () => {
+      wrap.querySelectorAll('.cc').forEach(d => d.classList.remove('sel'));
+      div.classList.add('sel');
+      S[stateKey] = c;
+    };
+    wrap.appendChild(div);
+  });
+}
+
+buildCircles('skin-circles', SKIN_COLORS, 'skin', S.skin);
+buildCircles('hair-circles', HAIR_COLORS, 'hair', S.hair);
+buildCircles('eye-circles',  EYE_COLORS,  'eye',  S.eye);
+
+['q-name','q-age','q-gender'].forEach(id => {
+  document.getElementById(id).addEventListener('change', e => {
+    const k = id.replace('q-','');
+    S[k] = e.target.value;
+  });
+});
+document.getElementById('q-name').addEventListener('input', e => { S.name = e.target.value; });
+
+// ==============================
+// PROMPT BUILDER
+// ==============================
+const WORLD_MAP = {
+  'Old Hollywood':      'old Hollywood glamour, cinematic star quality, timeless screen-siren elegance',
+  'London Punk Scene':  'rebellious punk edge, London street attitude, bold subversive energy',
+  'Bridgerton':         'regency-inspired romance, aspirational femininity, period-inflected soft elegance',
+  'Tokyo Harajuku':     'Harajuku street maximalism, kawaii-cool layering, fashion-forward creativity',
+  'Paris Fashion Week': 'Parisian high-fashion chic, editorial runway confidence, effortless French cool',
+  'Miami Beach':        'sun-drenched tropical luxury, bronzed beach-glamour energy, confident resort dressing',
+  'NYC Loft':           'effortless downtown cool, art-world sophistication, understated urban edge',
+  'Ibiza Summer':       'festival-luxury freedom, sun-kissed boho-glam, carefree golden-hour energy'
+};
+const VIBE_MAP = {
+  'Girl next door': 'warm, naturally beautiful, effortlessly approachable and charming',
+  'Life of the party': 'magnetic, high-energy, the luminous centre of every room',
+  'Iconic':         'untouchably cool, culturally significant, fashion-icon-level presence',
+  'Dark horse':     'quietly powerful, unexpected edge, captivating mysterious magnetism',
+  'The muse':       'artfully beautiful, dreamy and ethereal, inspiring to everyone she meets',
+  'Boss energy':    'commanding, powerful, unapologetically confident and in control',
+  'Soft girl':      'delicate, pastel-pretty, tender romantic femininity',
+  'Femme fatale':   'alluring and sophisticated, dangerously stylish, magnetic and composed'
+};
+const SEEN_MAP = {
+  'Trendsetter':   'always first with the new wave, culturally ahead',
+  'Cool girl':     'effortlessly stylish, the cool girl everyone wants to know',
+  'Sporty':        'dynamic, athletic energy, performance-confident and active',
+  'Mysterious':    'enigmatic allure, captivating without ever revealing too much',
+  'Artistic':      'creative soul, aesthetic visionary, visual storyteller',
+  'Power player':  'high-status authority, boardroom-to-bar ready, command and elegance combined',
+  'Dream girl':    'aspirational beauty, the version of you everyone admires',
+  'The IT girl':   'right now, the moment, impossibly and effortlessly on-trend'
+};
+const NIGHT_MAP = {
+  'Rooftop luxury':  'sleek cocktail dressing, champagne-bar-ready accessories, elevated gold or silver details',
+  'VIP nightlife':   'club-ready bodycon energy, statement boots or heels, chain bag, party-ready maximalism',
+  'Romantic dinner': 'elegant wrap or midi silhouette, delicate heels, pearl or fine gold accessories',
+  'Beach day':       'resort luxe styling, flat strappy sandals, golden accessories, sun-kissed finishes',
+  'Gallery opening': 'artistic statement pieces, considered layering, gallery-crowd sophistication',
+  'Fashion flex':    'head-to-toe statement fashion moment, power dressing at full voltage',
+  'Cocktail hour':   'polished structured silhouette, cocktail-ready elegance, signature statement accessory',
+  'Secret garden':   'romantic botanical fantasy, delicate floral or lace detail, ethereal soft layering'
+};
+const STYLE_GUIDE = {
+  'Understated': 'tonal palette, quiet luxury, refined investment basics, whisper-loud quality',
+  'Expressive':  'bold saturated colour, mixed prints, joyful high-energy fashion',
+  'Statement':   'architectural volume, hero-piece dressing, conversation-starting outfit construction',
+  'Icon':        'immediately recognizable aesthetic, fashion-forward from head to toe, no-compromise dressing',
+  'Sleek':       'minimalist tailoring, precision cuts, clean streamlined modernity',
+  'Playful':     'bright colour, fun proportions, mix-and-match spirit, joyful dressing',
+  'Edgy':        'structured asymmetry, bold hardware and metallic detail, sharp defined edge',
+  'Glamorous':   'luxurious high-shine fabrics, maximum glamour, body-conscious or floor-grazing drama',
+  'Sporty':      'athletic-influenced cut, technical fabric energy, sportswear-luxe dynamic proportions',
+  'Romantic':    'soft draping, delicate fabrics, feminine detail, floral or lace accents',
+  'Boho':        'flowing layers, earthy textures, free-spirited artisan silhouette',
+  'Coquette':    'bows, ribbon and lace trim, delicate feminine coquettish finishing touches',
+  'Street':      'oversized street silhouettes, graphic energy, urban attitude, drop-shoulder or wide-leg shapes'
+};
+
+const SKIN_NAMES = {
+  '#FFF8ED':'porcelain fair','#F5DEB3':'warm ivory','#DEB887':'light golden tan',
+  '#C8956C':'warm medium','#A0724A':'medium-deep warm','#7D4E2D':'deep warm',
+  '#5C3317':'rich dark','#3B1F0A':'deep ebony'
+};
+const HAIR_NAMES = {
+  '#1C1C1C':'jet black','#4A3728':'warm dark brown','#C8A96E':'golden caramel blonde',
+  '#E8D5A3':'pale honey blonde','#F0F0F0':'platinum white-blonde','#8B4040':'rich auburn red',
+  '#5B5BD6':'vivid electric blue','#FF69B4':'bright pink'
+};
+const EYE_NAMES = {
+  '#4A3728':'warm dark brown','#7B52AB':'striking violet','#2E8B8B':'deep teal',
+  '#2D6A2D':'forest green','#6BB5E8':'clear sky blue','#8B52AB':'deep amethyst',
+  '#E87A35':'warm amber','#4DDDD4':'bright turquoise'
+};
+
+function buildPrompt() {
+  const who   = S.who   || 'a polished, aspirational young woman';
+  const world = WORLD_MAP[S.world] || S.world || 'high-fashion social world';
+  const vibe  = VIBE_MAP[S.vibe]   || S.vibe  || '';
+  const seen  = SEEN_MAP[S.seen]   || S.seen  || '';
+  const night = NIGHT_MAP[S.night] || S.night || 'premium fashion accessories, statement footwear, coordinated details';
+  const styleParts = [...S.styles].map(s => STYLE_GUIDE[s] || s);
+  const skin  = SKIN_NAMES[S.skin] || 'luminous';
+  const hair  = HAIR_NAMES[S.hair] || 'styled';
+  const eye   = EYE_NAMES[S.eye]   || 'expressive';
+
+  const identityParts = [who, vibe, seen].filter(Boolean).join('; ');
+  const outfitStyle = styleParts.length
+    ? styleParts.join(', ')
+    : 'strong statement fashion silhouette with feminine proportions';
+
+  const glamMat = [...S.styles].includes('Glamorous')
+    ? 'high-shine luxurious materials, iridescent or metallic fabric surfaces'
+    : 'premium quality fabrics with refined texture contrast';
+
+  const namePrefix = S.name ? `${S.name} — ` : '';
+
+  return `Create an original fashion avatar as a stylised CGI full length character render. `
+    + `Identity and vibe: ${namePrefix}${identityParts}; ${world}; confident, desirable, youthful, premium, and aspirational with a magnetic high-status fashion presence. `
+    + `Body, face, and hair: full-body avatar with elegant long fashion-avatar proportions, slim build, refined doll-like facial features, ${skin} luminous skin, large expressive ${eye} eyes, small nose, glossy full lips, soft blush, ${hair} hair styled with volume and movement. `
+    + `Outfit silhouette: ${outfitStyle}; full length character with strong shape, movement and feminine proportions. `
+    + `Materials and colour: ${glamMat}, crisp material separation, luxury curated palette. `
+    + `Accessories and footwear: ${night}. `
+    + `Pose: full-body editorial pose, relaxed and self-aware, one leg lightly crossing in front of the other, calm confidence, composed fashion attitude. `
+    + `Render style: high-end beauty CGI, clean contour definition, subtle line emphasis around forms, airbrushed realism, smooth polished skin, controlled highlights, sharp garment construction, premium stylised 3D finish, collectible avatar appeal, minimal luxury studio background. `
+    + `Negative constraints: not painterly, not brushy, not sketch-like, no visible paint texture, no concept art looseness, no messy shading, no rough render, no broken anatomy, no distorted hands, no malformed footwear.`;
+}
+
+// ==============================
+// GENERATE
+// ==============================
+let generatedPrompt = '';
+
+function generateAvatars() {
+  S.name   = document.getElementById('q-name').value;
+  S.age    = document.getElementById('q-age').value;
+  S.gender = document.getElementById('q-gender').value;
+
+  generatedPrompt = buildPrompt();
+
+  // Navigate to results screen
+  const cur = document.getElementById(currentScreen);
+  const next = document.getElementById('s4');
+  cur.classList.add('exit');
+  cur.classList.remove('active');
+  setTimeout(() => cur.classList.remove('exit'), 350);
+  next.classList.add('active');
+  currentScreen = 's4';
+
+  // Show loading for 2.2s then reveal results
+  setTimeout(() => {
+    document.getElementById('gen-loading').style.display = 'none';
+    document.getElementById('prompt-display').textContent = generatedPrompt;
+    document.getElementById('s4-results').style.display = 'block';
+    loadAvatarImages();
+  }, 2200);
+}
+
+const SEEDS = [42, 137, 256, 512];
+
+function loadAvatarImages() {
+  const enc = encodeURIComponent(generatedPrompt);
+  SEEDS.forEach((seed, i) => {
+    const img = document.getElementById(`img${i}`);
+    const ldr = document.getElementById(`ldr${i}`);
+    const url = `https://image.pollinations.ai/prompt/${enc}?width=400&height=600&seed=${seed}&model=flux&nologo=true`;
+    img.src = url;
+    img.onload = () => {
+      img.classList.add('loaded');
+      ldr.classList.add('done');
+    };
+    img.onerror = () => {
+      ldr.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:20px;text-align:center">Image unavailable</div>';
+    };
+  });
+}
+
+function copyPrompt() {
+  navigator.clipboard.writeText(generatedPrompt).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>
