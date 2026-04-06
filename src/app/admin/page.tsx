@@ -29,10 +29,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   if (!adminKey || key !== adminKey) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBF0F6]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
         <div className="text-center">
-          <p className="text-[#2D1B4E] font-semibold mb-2">Admin access required</p>
-          <p className="text-[#8B7A9E] text-sm">Add <code className="bg-white px-1 rounded">?key=YOUR_ADMIN_KEY</code> to the URL</p>
+          <p className="text-[#134E4A] font-semibold mb-2">Admin access required</p>
+          <p className="text-[#5F8A87] text-sm">Add <code className="bg-white px-1 rounded">?key=YOUR_ADMIN_KEY</code> to the URL</p>
         </div>
       </div>
     )
@@ -41,25 +41,25 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const { sessions, storePath } = await getSessions()
 
   return (
-    <div className="min-h-screen bg-[#FBF0F6] p-6">
+    <div className="min-h-screen bg-[#F0FDFA] p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#2D1B4E]">Model Compare — Sessions</h1>
-        <p className="text-[#8B7A9E] text-sm mt-1">
+        <h1 className="text-2xl font-bold text-[#134E4A]">Model Compare — Sessions</h1>
+        <p className="text-[#5F8A87] text-sm mt-1">
           {sessions.length} session{sessions.length !== 1 ? 's' : ''} — reading from <code className="text-xs bg-white px-1 rounded">{storePath}</code>
         </p>
       </div>
 
       {sessions.length === 0 ? (
-        <p className="text-[#8B7A9E]">No sessions yet.</p>
+        <p className="text-[#5F8A87]">No sessions yet.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl shadow-sm border border-[#E8D8F0]">
+        <div className="overflow-x-auto rounded-2xl shadow-sm border border-[#99F6E4]">
           <table className="text-sm border-collapse min-w-full">
             <thead>
-              <tr className="bg-[#EDE0FF]">
-                <th className="text-left px-4 py-3 font-semibold text-[#2D1B4E] whitespace-nowrap border-b border-[#E8D8F0]">Images</th>
-                <th className="text-left px-4 py-3 font-semibold text-[#2D1B4E] whitespace-nowrap border-b border-[#E8D8F0]">Date</th>
-                <th className="text-left px-4 py-3 font-semibold text-[#2D1B4E] whitespace-nowrap border-b border-[#E8D8F0]">Prompt</th>
-                <th className="text-left px-4 py-3 font-semibold text-[#2D1B4E] whitespace-nowrap border-b border-[#E8D8F0]">Preferred Model</th>
+              <tr className="bg-[#CCFBF1]">
+                <th className="text-left px-4 py-3 font-semibold text-[#134E4A] whitespace-nowrap border-b border-[#99F6E4]">Images</th>
+                <th className="text-left px-4 py-3 font-semibold text-[#134E4A] whitespace-nowrap border-b border-[#99F6E4]">Date</th>
+                <th className="text-left px-4 py-3 font-semibold text-[#134E4A] whitespace-nowrap border-b border-[#99F6E4]">Prompt</th>
+                <th className="text-left px-4 py-3 font-semibold text-[#134E4A] whitespace-nowrap border-b border-[#99F6E4]">Preferred Model</th>
               </tr>
             </thead>
             <tbody>
@@ -75,10 +75,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 return (
                   <tr
                     key={session.sessionId}
-                    className={i % 2 === 0 ? 'bg-white' : 'bg-[#FBF0F6]'}
+                    className={i % 2 === 0 ? 'bg-white' : 'bg-[#F0FDFA]'}
                   >
-                    {/* Thumbnails */}
-                    <td className="px-4 py-3 align-top border-b border-[#F0E8F8]">
+                    <td className="px-4 py-3 align-top border-b border-[#CCFBF1]">
                       <div className="flex gap-1.5">
                         {paths.map((p, idx) => {
                           const imageUrl = `/api/session-image?path=${encodeURIComponent(p)}`
@@ -90,7 +89,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                                 src={imageUrl}
                                 alt={labels[idx]}
                                 className={`w-12 h-16 object-cover rounded-lg hover:opacity-80 transition-opacity ${
-                                  isPreferred ? 'ring-2 ring-[#7B52AB]' : ''
+                                  isPreferred ? 'ring-2 ring-[#0D9488]' : ''
                                 }`}
                               />
                             </a>
@@ -99,21 +98,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       </div>
                     </td>
 
-                    {/* Date */}
-                    <td className="px-4 py-3 text-[#2D1B4E] align-top border-b border-[#F0E8F8] whitespace-nowrap">
+                    <td className="px-4 py-3 text-[#134E4A] align-top border-b border-[#CCFBF1] whitespace-nowrap">
                       {new Date(session.timestamp).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
 
-                    {/* Prompt */}
-                    <td className="px-4 py-3 text-[#2D1B4E] align-top border-b border-[#F0E8F8] max-w-md">
+                    <td className="px-4 py-3 text-[#134E4A] align-top border-b border-[#CCFBF1] max-w-md">
                       <div className="text-xs leading-relaxed line-clamp-4" title={session.prompt}>
                         {session.prompt}
                       </div>
                     </td>
 
-                    {/* Preferred Model */}
-                    <td className="px-4 py-3 align-top border-b border-[#F0E8F8] whitespace-nowrap">
-                      <span className="font-semibold text-[#7B52AB]">
+                    <td className="px-4 py-3 align-top border-b border-[#CCFBF1] whitespace-nowrap">
+                      <span className="font-semibold text-[#0D9488]">
                         {session.preferredModel ?? '—'}
                       </span>
                     </td>

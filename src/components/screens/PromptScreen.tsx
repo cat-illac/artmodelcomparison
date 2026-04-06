@@ -25,7 +25,7 @@ export function PromptScreen({ onSubmit }: PromptScreenProps) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ background: "linear-gradient(150deg, #FBF0F6 0%, #EDE0FF 55%, #FBF0F6 100%)" }}
+      style={{ background: "linear-gradient(150deg, #F0FDFA 0%, #CCFBF1 55%, #F0FDFA 100%)" }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -34,8 +34,8 @@ export function PromptScreen({ onSubmit }: PromptScreenProps) {
         className="w-full max-w-lg flex flex-col gap-6"
       >
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#2D1B4E] mb-2">Model Compare</h1>
-          <p className="text-[#8B7A9E] text-sm">
+          <h1 className="text-3xl font-bold text-[#134E4A] mb-2">Model Compare</h1>
+          <p className="text-[#5F8A87] text-sm">
             Enter a prompt and see how 4 different AI models interpret it.
           </p>
         </div>
@@ -46,7 +46,7 @@ export function PromptScreen({ onSubmit }: PromptScreenProps) {
           onKeyDown={handleKeyDown}
           placeholder="Describe the image you want to generate..."
           rows={4}
-          className="w-full rounded-2xl border border-[#E8D8F0] bg-white px-5 py-4 text-sm text-[#2D1B4E] placeholder:text-[#8B7A9E] focus:outline-none focus:ring-2 focus:ring-[#7B52AB] focus:border-transparent resize-none shadow-sm"
+          className="w-full rounded-2xl border border-[#99F6E4] bg-white px-5 py-4 text-sm text-[#134E4A] placeholder:text-[#5F8A87] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent resize-none shadow-sm"
           autoFocus
         />
 
@@ -59,7 +59,7 @@ export function PromptScreen({ onSubmit }: PromptScreenProps) {
           Generate
         </Button>
 
-        <p className="text-center text-xs text-[#8B7A9E]">
+        <p className="text-center text-xs text-[#5F8A87]">
           Press Enter to submit, Shift+Enter for new line
         </p>
       </motion.div>

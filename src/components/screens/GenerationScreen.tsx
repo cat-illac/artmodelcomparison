@@ -77,15 +77,15 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center gap-8 px-6"
-      style={{ background: "linear-gradient(150deg, #FBF0F6 0%, #EDE0FF 55%, #FBF0F6 100%)" }}
+      style={{ background: "linear-gradient(150deg, #F0FDFA 0%, #CCFBF1 55%, #F0FDFA 100%)" }}
     >
       {!hasError ? (
         <>
           <div className="relative w-36 h-36 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(155,114,203,0.4)_0%,transparent_70%)] animate-orb-pulse" />
-            <div className="absolute inset-4 rounded-full bg-[radial-gradient(circle,rgba(123,82,171,0.35)_0%,transparent_70%)] animate-orb-pulse [animation-delay:0.4s]" />
-            <div className="absolute inset-8 rounded-full bg-[radial-gradient(circle,rgba(249,200,226,0.5)_0%,transparent_70%)] animate-orb-pulse [animation-delay:0.8s]" />
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#9B72CB] to-[#7B52AB] shadow-lg" />
+            <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(13,148,136,0.3)_0%,transparent_70%)] animate-orb-pulse" />
+            <div className="absolute inset-4 rounded-full bg-[radial-gradient(circle,rgba(45,212,191,0.3)_0%,transparent_70%)] animate-orb-pulse [animation-delay:0.4s]" />
+            <div className="absolute inset-8 rounded-full bg-[radial-gradient(circle,rgba(103,232,249,0.4)_0%,transparent_70%)] animate-orb-pulse [animation-delay:0.8s]" />
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2DD4BF] to-[#0D9488] shadow-lg" />
           </div>
 
           <AnimatePresence mode="wait">
@@ -95,15 +95,15 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.4 }}
-              className="text-[#2D1B4E] text-lg font-semibold text-center"
+              className="text-[#134E4A] text-lg font-semibold text-center"
             >
               {COPY_CYCLE[copyIndex]}
             </motion.p>
           </AnimatePresence>
 
           <div className="max-w-sm text-center">
-            <p className="text-[#8B7A9E] text-sm mb-2">Your prompt:</p>
-            <p className="text-[#2D1B4E] text-sm italic bg-white/60 rounded-xl px-4 py-2">
+            <p className="text-[#5F8A87] text-sm mb-2">Your prompt:</p>
+            <p className="text-[#134E4A] text-sm italic bg-white/60 rounded-xl px-4 py-2">
               &ldquo;{prompt}&rdquo;
             </p>
           </div>
@@ -114,23 +114,23 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-5 text-center"
         >
-          <div className="w-16 h-16 rounded-full bg-[#EDE0FF] flex items-center justify-center text-3xl">
+          <div className="w-16 h-16 rounded-full bg-[#CCFBF1] flex items-center justify-center text-3xl">
             ✦
           </div>
           <div>
-            <p className="text-[#2D1B4E] text-lg font-semibold mb-1">Something went wrong</p>
-            <p className="text-[#8B7A9E] text-sm">Generation failed. Give it another go.</p>
+            <p className="text-[#134E4A] text-lg font-semibold mb-1">Something went wrong</p>
+            <p className="text-[#5F8A87] text-sm">Generation failed. Give it another go.</p>
           </div>
           <button
             onClick={runGeneration}
             disabled={isRetrying}
-            className="px-8 py-3 rounded-full bg-[#7B52AB] text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-60"
+            className="px-8 py-3 rounded-full bg-[#0D9488] text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-60"
           >
             Try again
           </button>
           <button
             onClick={onError}
-            className="text-[#8B7A9E] text-sm underline underline-offset-2"
+            className="text-[#5F8A87] text-sm underline underline-offset-2"
           >
             Back to prompt
           </button>
