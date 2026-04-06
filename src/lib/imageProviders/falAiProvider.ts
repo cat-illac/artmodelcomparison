@@ -15,7 +15,7 @@ export const MODELS: ModelConfig[] = [
     id: 'fal-ai/flux-pro/v1.1',
     label: 'Flux Pro',
     slug: 'flux-pro',
-    input: { image_size: 'portrait_4_3', num_images: 1, guidance_scale: 3.5, num_inference_steps: 28 },
+    input: { image_size: 'portrait_4_3', num_images: 1, safety_tolerance: 5 },
   },
   {
     id: 'xai/grok-imagine-image',
@@ -84,9 +84,15 @@ export class FalAiProvider implements ImageGenerationProvider {
         const imageUrl = images[0].url
         const response = await fetch(imageUrl)
         const buffer = Buffer.from(await response.arrayBuffer())
+
+        // Skip if image is suspiciously small (likely black/empty)
+        if (buffer.length < 5000) {
+          throw new Error(`Image from ${model.id} appears empty (${buffer.length} bytes)`)
+        }
+
         const filePath = path.join(sessionDir, `image-${model.slug}.jpg`)
         await fs.writeFile(filePath, buffer)
-        console.log(`[falAi] saved ${model.slug}:`, filePath)
+        console.log(`[falAi] saved ${model.slug}:`, filePath, `(${buffer.length} bytes)`)
 
         return { modelSlug: model.slug, modelLabel: model.label, imagePath: filePath }
       })
