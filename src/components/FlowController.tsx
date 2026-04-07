@@ -75,6 +75,7 @@ export function FlowController() {
               sessionId={sessionId}
               modelImages={modelImages}
               imagePaths={imagePaths}
+              expectedCount={selectedModels.length}
               onReset={handleReset}
             />
           </motion.div>

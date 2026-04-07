@@ -11,10 +11,11 @@ interface ResultsScreenProps {
   sessionId: string
   modelImages: ModelImage[]
   imagePaths: string[]
+  expectedCount: number
   onReset: () => void
 }
 
-export function ResultsScreen({ prompt, sessionId, modelImages, imagePaths, onReset }: ResultsScreenProps) {
+export function ResultsScreen({ prompt, sessionId, modelImages, imagePaths, expectedCount, onReset }: ResultsScreenProps) {
   const [selected, setSelected] = useState<number | null>(null)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -82,6 +83,11 @@ export function ResultsScreen({ prompt, sessionId, modelImages, imagePaths, onRe
             <p className="text-sm text-[#5F8A87] mb-2">
               {modelImages.length} model{modelImages.length !== 1 ? 's' : ''} generated an image. Tap the one you like best.
             </p>
+            {modelImages.length < expectedCount && (
+              <p className="text-xs text-amber-600/80 mb-2">
+                {expectedCount - modelImages.length} model{expectedCount - modelImages.length !== 1 ? 's' : ''} failed to generate and were skipped.
+              </p>
+            )}
             <div className="bg-white/60 rounded-xl px-4 py-2 inline-block">
               <p className="text-[#134E4A] text-sm italic">&ldquo;{prompt}&rdquo;</p>
             </div>
