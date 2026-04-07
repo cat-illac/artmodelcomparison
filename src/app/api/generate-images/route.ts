@@ -4,14 +4,18 @@ import type { ModelImage } from '@/types/session'
 
 export async function POST(request: Request) {
   try {
-    const { prompt, sessionId } = (await request.json()) as { prompt: string; sessionId: string }
+    const { prompt, sessionId, modelSlugs } = (await request.json()) as {
+      prompt: string
+      sessionId: string
+      modelSlugs?: string[]
+    }
 
     if (!prompt || !sessionId) {
       return NextResponse.json({ error: 'prompt and sessionId are required' }, { status: 400 })
     }
 
     const provider = new FalAiProvider()
-    const results = await provider.generateMultiModel(prompt, sessionId)
+    const results = await provider.generateMultiModel(prompt, sessionId, modelSlugs)
 
     const imagePaths = results.map(r => r.imagePath)
     const modelImages: ModelImage[] = results.map(r => ({

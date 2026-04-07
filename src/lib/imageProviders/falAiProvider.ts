@@ -2,40 +2,9 @@ import { fal } from '@fal-ai/client'
 import fs from 'fs/promises'
 import path from 'path'
 import type { ImageGenerationProvider } from './index'
+import { ALL_MODELS } from '@/lib/models'
 
-export type ModelConfig = {
-  id: string
-  label: string
-  slug: string
-  input: Record<string, unknown>
-}
-
-export const MODELS: ModelConfig[] = [
-  {
-    id: 'fal-ai/flux-pro/v1.1',
-    label: 'Flux Pro',
-    slug: 'flux-pro',
-    input: { image_size: 'portrait_4_3', num_images: 1, safety_tolerance: 5 },
-  },
-  {
-    id: 'xai/grok-imagine-image',
-    label: 'Grok Aurora',
-    slug: 'grok-aurora',
-    input: { image_size: 'portrait_4_3' },
-  },
-  {
-    id: 'fal-ai/flux/dev',
-    label: 'Flux Dev',
-    slug: 'flux-dev',
-    input: { image_size: 'portrait_4_3', num_images: 1, guidance_scale: 3.5, num_inference_steps: 28 },
-  },
-  {
-    id: 'fal-ai/nano-banana-2',
-    label: 'Nano Banana',
-    slug: 'nano-banana',
-    input: { image_size: 'portrait_4_3' },
-  },
-]
+export type { ModelConfig } from '@/lib/models'
 
 export interface MultiModelResult {
   modelSlug: string
@@ -55,13 +24,25 @@ export class FalAiProvider implements ImageGenerationProvider {
   }
 
   /** Generate 1 image per model, all in parallel */
-  async generateMultiModel(prompt: string, sessionId: string): Promise<MultiModelResult[]> {
+  async generateMultiModel(
+    prompt: string,
+    sessionId: string,
+    modelSlugs?: string[],
+  ): Promise<MultiModelResult[]> {
+    const models = modelSlugs?.length
+      ? ALL_MODELS.filter(m => modelSlugs.includes(m.slug))
+      : ALL_MODELS
+
+    if (models.length === 0) {
+      throw new Error('No models selected')
+    }
+
     const storeBase = path.resolve(process.env.SESSION_STORE_PATH ?? 'sessions')
     const sessionDir = path.join(storeBase, sessionId)
     await fs.mkdir(sessionDir, { recursive: true })
 
     const settled = await Promise.allSettled(
-      MODELS.map(async (model): Promise<MultiModelResult> => {
+      models.map(async (model): Promise<MultiModelResult> => {
         console.log(`[falAi] generating with ${model.id}...`)
 
         const result = await fal.subscribe(model.id, {

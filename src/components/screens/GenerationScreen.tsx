@@ -3,27 +3,30 @@
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import type { ModelImage } from "@/types/session"
-
-const COPY_CYCLE = [
-  "Sending to 4 AI models...",
-  "Flux Pro is thinking...",
-  "Grok Aurora is creating...",
-  "Flux Dev is generating...",
-  "Nano Banana is rendering...",
-  "Almost there...",
-]
+import { ALL_MODELS } from "@/lib/models"
 
 interface GenerationScreenProps {
   prompt: string
   sessionId: string
+  modelSlugs: string[]
   onComplete: (imagePaths: string[], modelImages: ModelImage[]) => void
   onError: () => void
 }
 
-export function GenerationScreen({ prompt, sessionId, onComplete, onError }: GenerationScreenProps) {
+export function GenerationScreen({ prompt, sessionId, modelSlugs, onComplete, onError }: GenerationScreenProps) {
   const [copyIndex, setCopyIndex] = useState(0)
   const [hasError, setHasError] = useState(false)
   const [isRetrying, setIsRetrying] = useState(false)
+
+  const selectedLabels = ALL_MODELS
+    .filter(m => modelSlugs.includes(m.slug))
+    .map(m => m.label)
+
+  const copyCycle = [
+    `Sending to ${modelSlugs.length} model${modelSlugs.length !== 1 ? "s" : ""}...`,
+    ...selectedLabels.map(label => `${label} is generating...`),
+    "Almost there...",
+  ]
 
   const runGeneration = async () => {
     setHasError(false)
@@ -32,7 +35,7 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
       const genRes = await fetch('/api/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, sessionId }),
+        body: JSON.stringify({ prompt, sessionId, modelSlugs }),
       })
       if (!genRes.ok) throw new Error('Image generation failed')
       const { imagePaths, modelImages } = await genRes.json() as {
@@ -69,9 +72,10 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
   useEffect(() => {
     if (hasError) return
     const interval = setInterval(() => {
-      setCopyIndex(i => (i + 1) % COPY_CYCLE.length)
+      setCopyIndex(i => (i + 1) % copyCycle.length)
     }, 2500)
     return () => clearInterval(interval)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasError])
 
   return (
@@ -97,7 +101,7 @@ export function GenerationScreen({ prompt, sessionId, onComplete, onError }: Gen
               transition={{ duration: 0.4 }}
               className="text-[#134E4A] text-lg font-semibold text-center"
             >
-              {COPY_CYCLE[copyIndex]}
+              {copyCycle[copyIndex]}
             </motion.p>
           </AnimatePresence>
 

@@ -20,11 +20,13 @@ export function FlowController() {
   const [screen, setScreen] = useState<Screen>("prompt")
   const [sessionId, setSessionId] = useState(() => uuidv4())
   const [prompt, setPrompt] = useState("")
+  const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [imagePaths, setImagePaths] = useState<string[]>([])
   const [modelImages, setModelImages] = useState<ModelImage[]>([])
 
-  const handlePromptSubmit = useCallback((text: string) => {
+  const handlePromptSubmit = useCallback((text: string, modelSlugs: string[]) => {
     setPrompt(text)
+    setSelectedModels(modelSlugs)
     setScreen("generating")
   }, [])
 
@@ -41,6 +43,7 @@ export function FlowController() {
   const handleReset = useCallback(() => {
     setSessionId(uuidv4())
     setPrompt("")
+    setSelectedModels([])
     setImagePaths([])
     setModelImages([])
     setScreen("prompt")
@@ -59,6 +62,7 @@ export function FlowController() {
             <GenerationScreen
               prompt={prompt}
               sessionId={sessionId}
+              modelSlugs={selectedModels}
               onComplete={handleGenerationComplete}
               onError={handleGenerationError}
             />
